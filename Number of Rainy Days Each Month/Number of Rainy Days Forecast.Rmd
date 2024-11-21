@@ -1,10 +1,4 @@
----
-title: "Program Tugas Individu"
-author: "Erena (082011833031)"
-output:
-  word_document: default
-  html_document: default
----
+
 ```{r}
 require(pacman)
 #load packages
@@ -16,7 +10,7 @@ pacman::p_load(MASS)
 ```{r}
 #Membaca Data
 library(readxl)
-masterdata <- read_excel("D:/Campur/hari.xlsx")
+masterdata <- read_excel("___.xlsx")
 head(masterdata)
 tail(masterdata)
 summary(masterdata)
