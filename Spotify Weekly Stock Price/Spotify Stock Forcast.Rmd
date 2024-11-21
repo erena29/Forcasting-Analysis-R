@@ -7,7 +7,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(readxl)
-spotify <- read_excel("D:/KULIAH/SEM 4/Analisis Runtun Waktu/spotify.xlsx")
+spotify <- read_excel("___.xlsx")
 View(spotify)
 head(spotify)
 ```
