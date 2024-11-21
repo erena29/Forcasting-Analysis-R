@@ -1,0 +1,110 @@
+---
+title: "Program Tugas Individu"
+author: "Erena (082011833031)"
+output:
+  word_document: default
+  html_document: default
+---
+```{r}
+require(pacman)
+#load packages
+pacman::p_load(datasets, tseries)
+pacman::p_load(rio)
+pacman::p_load(MASS)
+```
+
+```{r}
+#Membaca Data
+library(readxl)
+masterdata <- read_excel("D:/Campur/hari.xlsx")
+head(masterdata)
+tail(masterdata)
+summary(masterdata)
+
+```
+
+```{r}
+#Plot time series
+tsdata <- ts(masterdata$Jumlah, frequency = 12, start = c(2009, 1))
+tsdata
+plot.ts(tsdata)
+acf(tsdata)
+pacf(tsdata)
+```
+
+```{r}
+#Cek kestasioneritasan Data
+library(tseries)
+adf.test(tsdata,k=12)
+```
+
+```{r}
+#transformasi box-cox
+boxcox(lm(tsdata~1))
+
+
+```
+
+```{r}
+#diff 1
+diff1 <- diff(tsdata, 1)
+diff1
+plot.ts(diff1)
+acf(diff1,lag.max = 30)
+pacf(diff1,lag.max=30)
+adf.test(diff1,k=12)
+library(TSA)
+eacf(diff1)
+
+```
+
+```{r}
+#diff 12
+diff12 <- diff(diff1, 12)
+diff12
+plot.ts(diff12)
+acf(diff12,lag.max = 30)
+pacf(diff12,lag.max=30)
+adf.test(diff12,k=12)
+library(TSA)
+eacf(diff12)
+```
+```{r}
+##Estimasi Model
+Arimasima.p<- arima(tsdata, order = c(1, 1, 1), seasonal = list(order=c(0,1,1),period=12),include.mean = TRUE)
+Arimasima.p
+
+```
+
+```{r}
+library(lmtest)
+
+#Diagnostik Checking
+#1. Uji Signifikansi Parameter 
+coeftest(Arimasima.p)
+t.test(Arimasima.p$residuals, mu = 0, alternative = "two.sided")
+
+#2. Pengujian apakah residual white noise
+Box.test(Arimasima.p$residuals, type="Ljung")
+
+#3. Pengujian residual apakah berdistribusi normal
+#Dengan Kolmogorov Smirnov
+ks.test(Arimasima.p$residuals,"pnorm",mean=0, sd=sd(Arimasima.p$residuals))
+qqnorm(Arimasima.p$residuals)
+qqline(Arimasima.p$residuals)
+
+acf(Arimasima.p$residuals,lag.max = 30)
+pacf(Arimasima.p$residuals,lag.max=30)
+tsdiag(Arimasima.p)
+```
+
+```{r}
+#Foracasting
+library(forecast)
+library(sarima)
+forecasting <- forecast(tsdata, model =Arimasima.p, h = 5)
+forecasting
+autoplot(forecasting)
+
+```
+
