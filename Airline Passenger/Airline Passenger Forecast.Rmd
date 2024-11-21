@@ -1,0 +1,115 @@
+
+```{r}
+require(pacman)
+#load packages
+pacman::p_load(datasets, tseries)
+pacman::p_load(rio)
+pacman::p_load(MASS)
+```
+
+```{r}
+#Membaca Data
+library(openxlsx)
+masterdata <- read.xlsx("__.xlsx")
+head(masterdata)
+tail(masterdata)
+summary(masterdata)
+
+
+```
+
+```{r}
+#Plot time series
+tsdata <- ts(masterdata$Jumlah, frequency = 12, start = c(2010, 1))
+tsdata
+plot(tsdata)
+acf(tsdata)
+pacf(tsdata)
+```
+
+```{r}
+#Cek kestasioneritasan Data
+adf.test(tsdata)
+```
+
+```{r}
+#transformasi box-cox
+
+library(TSA)
+library(MASS)
+library(car)
+
+BoxCox.ar(tsdata)
+```
+
+
+```{r}
+#Print data transformasi boxcox
+boxcox <- bcPower(tsdata, 0)
+boxcox
+```
+
+
+```{r}
+#diff 1
+diff1 <- diff(boxcox, 1)
+diff1
+plot(diff1)
+acf(diff1,lag.max = 100)
+pacf(diff1,lag.max=100)
+adf.test(diff1)
+```
+
+
+```{r}
+#diff 12
+diff12 <- diff(boxcox, 12)
+diff12
+plot(diff12)
+acf(diff12,lag.max = 100)
+pacf(diff12,lag.max=100)
+adf.test(diff12)
+```
+
+```{r}
+##Estimasi Model
+library(astsa)
+Imasima <- arima(boxcox, order = c(0,1,1), seasonal = list(order = c(0,1,1), period = 12), include.mean = FALSE)
+Imasima
+sarima(tsdata, 0,1,1, 0,1,1, 12)
+
+```
+
+
+```{r}
+library(lmtest)
+#tes coef
+coeftest(Imasima)
+
+#Uji white noise residual
+Box.test(Imasima$residuals,type = "Ljung")
+
+#Uji Normalitas residual
+ks.test(Imasima$residuals,"pnorm",mean=0, sd=sd(Imasima$residuals))
+
+```
+
+
+```{r}
+
+#MAPE
+tsdata.fitted <- fitted(Imasima)
+nilaimape <- mean(abs(tsdata-(tsdata.fitted))/(tsdata))*100
+nilaimape
+```
+
+
+```{r}
+#uji residual
+t.test(Imasima$residuals, mu = 0, alternative = "two.sided")
+
+
+#Kesimpulan
+print(Imasima)
+
+```
